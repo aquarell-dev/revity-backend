@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from pathlib import Path
 
 from environ import environ
@@ -16,12 +17,18 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
+    # Django
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Apps
+    "users",
+    # Third-party
+    "rest_framework",
+    "rest_framework_simplejwt",
 ]
 
 MIDDLEWARE = [
@@ -53,7 +60,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "revity.wsgi.application"
 
-
 DATABASES = {"default": env.db()}
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -83,3 +89,25 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Rest framework
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+}
+
+
+# Auth
+REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+}
+
+
+# User
+AUTH_USER_MODEL = "users.CustomUser"
