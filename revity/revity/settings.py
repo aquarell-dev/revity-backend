@@ -26,6 +26,9 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # Apps
     "users",
+    "cards",
+    "transactions",
+    "goals",
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt",
@@ -78,13 +81,13 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-LANGUAGE_CODE = "en-us"
-
-TIME_ZONE = "UTC"
-
+LANGUAGE_CODE = "ru"
 USE_I18N = True
+USE_L10N = True
 
+TIME_ZONE = "Europe/Moscow"
 USE_TZ = True
+
 
 STATIC_URL = "static/"
 
