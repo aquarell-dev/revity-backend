@@ -1,10 +1,10 @@
-from django.db import models
-from django.db.models import Sum, Case, When, F
-from django.utils.translation import gettext_lazy as _
-from django.utils import timezone
 from django.contrib import admin
+from django.db import models
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
-from transactions.models import Transaction, TransactionType
+from transactions.models import Transaction
+from transactions.services import get_card_balance
 
 
 class Card(models.Model):
@@ -34,27 +34,7 @@ class Card(models.Model):
     @property
     @admin.display(description="Баланс")
     def balance(self):
-        balance = (
-            Transaction.objects.filter(card=self)
-            .aggregate(
-                balance=Sum(
-                    Case(
-                        When(
-                            transaction_type=TransactionType.INCOME,
-                            then=F("amount"),
-                        ),
-                        When(
-                            transaction_type=TransactionType.EXPENSE,
-                            then=-F("amount"),
-                        ),
-                        output_field=models.DecimalField(),
-                    )
-                ),
-            )
-            .get("balance")
-        )
-
-        return balance or 0
+        return get_card_balance(self)
 
     class Meta:
         verbose_name = "Банковская карта"

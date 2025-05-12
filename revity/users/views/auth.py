@@ -1,13 +1,15 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from django.conf import settings
 from django.contrib.auth import authenticate
+from rest_framework import status
+from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
-from rest_framework.exceptions import AuthenticationFailed
-from django.conf import settings
 
+from users.models import CustomUser
 from users.serializers import RegisterSerializer
 
 
@@ -18,7 +20,10 @@ class RegisterView(APIView):
         serializer = RegisterSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        user = serializer.save()
+        user = CustomUser.objects.create_user(
+            email=serializer.validated_data["email"],
+            password=serializer.validated_data["password"],
+        )
 
         refresh = RefreshToken.for_user(user)
 
@@ -30,12 +35,11 @@ class RegisterView(APIView):
         )
 
         response.set_cookie(
-            key="refresh_token",
+            key=settings.REFRESH_TOKEN_COOKIE_NAME,
             value=str(refresh),
             httponly=True,
             secure=True,
             samesite="Lax",
-            path="/api/token/refresh/",
         )
 
         return response
@@ -67,7 +71,6 @@ class LoginView(APIView):
             httponly=True,
             secure=not settings.DEBUG,
             samesite="LAX",
-            path="api/v1/token/refresh",
         )
 
         return response
@@ -77,17 +80,41 @@ class CookieTokenRefreshView(TokenRefreshView):
     permission_classes = [AllowAny]
 
     def post(self, request, *args, **kwargs):
-        refresh_token = request.COOKIES.get("refresh_token")
+        refresh_token = request.COOKIES.get(settings.REFRESH_TOKEN_COOKIE_NAME)
 
         if refresh_token is None:
             raise AuthenticationFailed("Refresh token not found in cookie")
 
         request.data["refresh"] = refresh_token
-        return super().post(request, *args, **kwargs)
+
+        try:
+            response = super().post(request, *args, **kwargs)
+        except TokenError as e:
+            response = Response({"detail": "Refresh token expired or invalid"}, status=401)
+            response.delete_cookie(settings.REFRESH_TOKEN_COOKIE_NAME)
+            return response
+
+        # Remove refresh token from the response body
+        access_token = response.data.get("access")
+        refresh_token = response.data.get("refresh")
+        response.data.clear()
+        response.data["access"] = access_token
+
+        # Set new refresh token in cookie if present
+        if refresh_token:
+            response.set_cookie(
+                key=settings.REFRESH_TOKEN_COOKIE_NAME,
+                value=refresh_token,
+                httponly=True,
+                secure=not settings.DEBUG,
+                samesite="LAX",
+            )
+
+        return response
 
 
 class LogoutView(APIView):
     def post(self, request):
         response = Response({"detail": "Logged out"}, status=status.HTTP_200_OK)
-        response.delete_cookie("refresh_token", path="/api/token/refresh/")
+        response.delete_cookie(settings.REFRESH_TOKEN_COOKIE_NAME)
         return response

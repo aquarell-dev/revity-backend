@@ -1,0 +1,11 @@
+services:
+  revity-backend:
+    container_name: revity-backend
+    build: .
+    env_file:
+      - ./revity/.env
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./revity:/revity
