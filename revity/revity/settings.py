@@ -14,7 +14,7 @@ SECRET_KEY = env("SECRET_KEY")
 
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["revity-backend.onrender.com"]
 
 INSTALLED_APPS = [
     # Django
