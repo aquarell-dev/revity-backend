@@ -45,6 +45,10 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://revity-backend.onrender.com",
+]
+
 ROOT_URLCONF = "revity.urls"
 
 TEMPLATES = [
