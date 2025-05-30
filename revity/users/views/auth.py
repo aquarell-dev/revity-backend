@@ -38,8 +38,9 @@ class RegisterView(APIView):
             key=settings.REFRESH_TOKEN_COOKIE_NAME,
             value=str(refresh),
             httponly=True,
-            secure=True,
-            samesite="Lax",
+            secure=not settings.DEBUG,
+            samesite="None",
+            path="/",
         )
 
         return response
@@ -70,7 +71,8 @@ class LoginView(APIView):
             value=str(refresh),
             httponly=True,
             secure=not settings.DEBUG,
-            samesite="LAX",
+            samesite="None",
+            path="/",
         )
 
         return response
@@ -107,7 +109,8 @@ class CookieTokenRefreshView(TokenRefreshView):
                 value=refresh_token,
                 httponly=True,
                 secure=not settings.DEBUG,
-                samesite="LAX",
+                samesite="None",
+                path="/",
             )
 
         return response
