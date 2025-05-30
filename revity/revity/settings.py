@@ -54,7 +54,7 @@ CSRF_TRUSTED_ORIGINS = [
 CORS_ALLOWED_ORIGINS = [
     "https://revity-backend.onrender.com",
     "http://localhost:5173",
-    "https://budget-app-plum.vercel.app/",
+    "https://budget-app-plum.vercel.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
